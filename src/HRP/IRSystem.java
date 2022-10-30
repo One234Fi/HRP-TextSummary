@@ -90,6 +90,7 @@ public class IRSystem {
         return temp;
     }
 
+    //This is bad pls find better before finishing
     private void removeStopWords() {
         for (int i : sentences.keySet()) {
             String string = sentences.get(i);
