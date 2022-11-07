@@ -76,7 +76,11 @@ public class IRSystem {
             System.out.println("Error at: " + i + " " + sentence);
         }
         
+        System.out.println("Removing stop words...");
         removeStopWords();
+        System.out.println("Building similarity matrix...");
+        SimilarityMatrix simMat = new SimilarityMatrix(sentences.toArray());
+        System.out.println(simMat.toString());
     }
 
     private String cleanSentence(String sentence) {

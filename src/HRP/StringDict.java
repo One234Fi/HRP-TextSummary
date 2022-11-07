@@ -88,4 +88,15 @@ public class StringDict {
     public Set<Integer> keySet() {
         return map.keySet();
     }
+    
+    public String[] toArray() {
+        String[] sentences = new String[map.size()];
+        
+        for (int i : keySet()) {
+            //System.out.println(get(i));
+            sentences[i] = get(i);
+        }
+        
+        return sentences;
+    }
 }
