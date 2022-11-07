@@ -25,7 +25,7 @@ public class PDFReader {
         
         IRSystem IR = new IRSystem("C:/Users/ethan/OneDrive/Documents/Honors Research Project/ResearchPapers/3486674.pdf");
         IR.start();
-        IR.printText();
+        //IR.printText();
         
         
     }
