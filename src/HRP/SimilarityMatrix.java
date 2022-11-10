@@ -38,10 +38,9 @@ public class SimilarityMatrix {
         }
     }
 
-    //this probably could be broken up into a couple separate methods for readability
-    //ALSO wow this is some garbage time scaling
+    //Calculate cosine similarity. There's rounding errors or something?
     private double cosineSimilarity(String a, String b) {
-        TreeSet<String> tempSet = new TreeSet<String>();
+        TreeSet<String> tempSet = new TreeSet<>();
         StringTokenizer st = new StringTokenizer(a + " " + b, " ");
 
         while (st.hasMoreTokens()) {
@@ -55,8 +54,8 @@ public class SimilarityMatrix {
         //System.out.println(Arrays.toString(sentence_1));
         //System.out.println(Arrays.toString(sentence_2));
 
-        int[] vector_A = calculateVector(tempSet, sentence_1);
-        int[] vector_B = calculateVector(tempSet, sentence_2);
+        double[] vector_A = calculateVector(tempSet, sentence_1);
+        double[] vector_B = calculateVector(tempSet, sentence_2);
         
         //System.out.println(Arrays.toString(vector_A));
         //System.out.println(Arrays.toString(vector_B));
@@ -67,20 +66,23 @@ public class SimilarityMatrix {
         return cosineSim;
     }
 
-    public int[] calculateVector(TreeSet<String> ts, String[] sentence) {
-        int[] vect = new int[ts.size()];
+    //determine a vector based on the frequency of each word in a sentence
+    public double[] calculateVector(TreeSet<String> ts, String[] sentence) {
+        double[] vect = new double[ts.size()];
 
         //COPY the set so that it doesn't get deleted
         TreeSet<String> tempSet = new TreeSet(ts);
         int point = 0;
         while (!tempSet.isEmpty()) {
-            int sum = 0;
+            double sum = 0.0;
             String temp = tempSet.pollFirst();
             for (String s : sentence) {
                 if (temp.equalsIgnoreCase(s)) {
                     sum++;
                 }
             }
+            //normalize based on length
+            sum /= sentence.length;
             vect[point] = sum;
             point++;
         }
@@ -89,7 +91,7 @@ public class SimilarityMatrix {
     }
 
     //Takes the length of the smaller of the two vectors
-    public double dotProduct(int[] A, int[] B) {
+    public double dotProduct(double[] A, double[] B) {
         int minLength = Math.min(A.length, B.length);
         double DP = 0.0;
 
@@ -100,11 +102,12 @@ public class SimilarityMatrix {
         return DP;
     }
 
-    public double magnitude(int[] vector) {
+    //calculate the magnitude of a vector
+    public double magnitude(double[] vector) {
         double result = 0.0;
 
-        for (int i : vector) {
-            result += Math.pow(i, 2);
+        for (double d : vector) {
+            result += Math.pow(d, 2);
         }
 
         result = Math.sqrt(result);
@@ -112,6 +115,7 @@ public class SimilarityMatrix {
         return result;
     }
 
+    //return a string of the matrix
     @Override
     public String toString() {
         String out = "";
