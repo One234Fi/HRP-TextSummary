@@ -6,6 +6,7 @@ package HRP;
 import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.StringTokenizer;
+import java.util.ArrayList;
 
 /**
  * TODO: rank sentences, add TF-IDF?
@@ -23,23 +24,59 @@ import java.util.StringTokenizer;
  */
 public class SimilarityMatrix {
 
-    private String[] sentences;
+    private ArrayList<String> sentences;
     private double[][] simMatrix;
 
-    public SimilarityMatrix(String[] sentenceList) {
+    public SimilarityMatrix(ArrayList<String> sentenceList) {
         sentences = sentenceList;
-        simMatrix = new double[sentences.length][sentences.length];
+        simMatrix = new double[sentences.size()][sentences.size()];
 
         for (int i = 0; i < simMatrix.length; i++) {
             for (int j = 0; j < simMatrix.length; j++) {
-                simMatrix[i][j] = cosineSimilarity(sentences[i], sentences[j]);
+                simMatrix[i][j] = cosineSimilarity(sentences.get(i), sentences.get(j));
                 //System.out.println(simMatrix[i][j]);
             }
         }
     }
 
+    public SimilarityMatrix(ArrayList<String> sentenceList, boolean generateMatrix) {
+        sentences = sentenceList;
+        
+        if (generateMatrix) {
+            
+            simMatrix = new double[sentences.size()][sentences.size()];
+
+            for (int i = 0; i < simMatrix.length; i++) {
+                for (int j = 0; j < simMatrix.length; j++) {
+                    simMatrix[i][j] = cosineSimilarity(sentences.get(i), sentences.get(j));
+                    //System.out.println(simMatrix[i][j]);
+                }
+            }
+        }
+    }
+    
+    public ArrayList<String> similarSentences(double threshold) {
+        ArrayList<String> output = new ArrayList<String>();
+        
+        for (int i = 0; i < sentences.size(); i++) {
+            for (int j = 0; j < sentences.size(); j++) {
+                if(i != j) {
+                    if (cosineSimilarity(sentences.get(i), sentences.get(j)) >= threshold && cosineSimilarity(sentences.get(i), sentences.get(j)) < 0.9999999999999998) {
+                        output.add(sentences.get(i));
+                        output.add(sentences.get(j));
+                        System.out.println("sentences[i]: " + sentences.get(i));
+                        System.out.println("sentences[j]: " + sentences.get(j));
+                        System.out.println("Cosine similarity: " + cosineSimilarity(sentences.get(i), sentences.get(j)));
+                    }
+                }
+            }
+        }
+        
+        return output;
+    }
+
     //Calculate cosine similarity. There's rounding errors or something?
-    private double cosineSimilarity(String a, String b) {
+    public double cosineSimilarity(String a, String b) {
         TreeSet<String> tempSet = new TreeSet<>();
         StringTokenizer st = new StringTokenizer(a + " " + b, " ");
 
@@ -56,10 +93,9 @@ public class SimilarityMatrix {
 
         double[] vector_A = calculateVector(tempSet, sentence_1);
         double[] vector_B = calculateVector(tempSet, sentence_2);
-        
+
         //System.out.println(Arrays.toString(vector_A));
         //System.out.println(Arrays.toString(vector_B));
-
         //Formula (A.B) / (||A||*||B||)
         double cosineSim = dotProduct(vector_A, vector_B) / (magnitude(vector_A) * magnitude(vector_B));
 

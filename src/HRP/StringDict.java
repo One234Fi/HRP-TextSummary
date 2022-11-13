@@ -4,6 +4,7 @@ String[0] will be immutable, and String[1] will be mutable
  */
 package HRP;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -80,6 +81,16 @@ public class StringDict {
         return map.get(key)[1];
     }
     
+    public void remove(int key) {
+        map.remove(key);
+    }
+    
+    public void clearUselessData() {
+        map.entrySet().removeIf((Map.Entry<Integer, String[]> e) -> {
+            return e.getValue()[1].length() <= 12;
+        });
+    }
+    
     /**
      * Provides access to the map's key set
      * 
@@ -89,14 +100,17 @@ public class StringDict {
         return map.keySet();
     }
     
-    public String[] toArray() {
-        String[] sentences = new String[map.size()];
-        
-        for (int i : keySet()) {
-            //System.out.println(get(i));
-            sentences[i] = get(i);
+    public ArrayList<String> getValues() {
+        ArrayList<String> output = new ArrayList<String>();
+        for (int i : map.keySet()) {
+            output.add((String) map.get(i)[1]);
         }
         
-        return sentences;
+        return output;
     }
+    
+    /*public String[] toArray() {
+        String[] sentences = getValues().toArray();
+        return sentences;
+    }*/
 }
