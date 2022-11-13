@@ -79,8 +79,9 @@ public class IRSystem {
         System.out.println("Removing stop words...");
         removeStopWords();
         System.out.println("Building similarity matrix...");
-        SimilarityMatrix simMat = new SimilarityMatrix(sentences.toArray());
-        System.out.println(simMat.toString());
+        SimilarityMatrix simMat = new SimilarityMatrix(sentences.getValues(), false);
+        //System.out.println(simMat.toString());
+        ArrayList<String> simPairs = simMat.similarSentences(0.5);
     }
 
     private String cleanSentence(String sentence) {
@@ -89,6 +90,7 @@ public class IRSystem {
         temp = temp.replaceAll("\n", "");
         temp = temp.replaceAll("\\p{Punct}", "");
         temp = temp.replaceAll("\\P{Print}", "");
+        temp = temp.replaceAll("[0-9]" , "");
 
         //System.out.println(temp);
         return temp;
@@ -113,6 +115,7 @@ public class IRSystem {
             }
             sentences.modify(i, string);
         }
+        sentences.clearUselessData();
     }
 
     /**
