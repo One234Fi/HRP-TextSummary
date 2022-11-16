@@ -81,7 +81,7 @@ public class IRSystem {
         System.out.println("Building similarity matrix...");
         SimilarityMatrix simMat = new SimilarityMatrix(sentences.getValues(), false);
         //System.out.println(simMat.toString());
-        ArrayList<String> simPairs = simMat.similarSentences(0.5);
+        ArrayList<String> simPairs = simMat.similarSentences(0.8);
     }
 
     private String cleanSentence(String sentence) {
@@ -98,7 +98,7 @@ public class IRSystem {
 
     //This is bad pls find better before finishing
     private void removeStopWords() {
-        for (int i : sentences.keySet()) {
+        for (int i = 0; i < sentences.length(); i++) {
             String string = sentences.get(i);
             StringTokenizer st = new StringTokenizer(string, " ");
             string = "";
@@ -122,7 +122,7 @@ public class IRSystem {
      * Prints all the collected text
      */
     public void printText() {
-        for (int i : sentences.keySet()) {
+        for (int i = 0; i < sentences.length(); i++) {
             System.out.println(sentences.get(i));
             System.out.println("");
             System.out.println("===================================");
