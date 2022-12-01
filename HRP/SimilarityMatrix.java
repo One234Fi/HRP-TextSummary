@@ -1,6 +1,3 @@
-/*
- Similarity matrix that implements cosine similarity
- */
 package HRP;
 
 import java.util.Arrays;
@@ -18,15 +15,23 @@ import java.util.ArrayList;
  * order without duplicates then count the occurences of each word in the two
  * sentences calculate cosine similarity return
  */
+
 /**
- *
+ * Object that implements cosine similarity methods
+ * 
  * @author ethan
  */
 public class SimilarityMatrix {
 
-    private StringDict sentences;
+    //the stringdict of sentences to compare
+    private final StringDict sentences;
     private double[][] simMatrix;
 
+    /**
+     * constructor
+     *
+     * @param sentenceList: the list of sentences to compare
+     */
     public SimilarityMatrix(StringDict sentenceList) {
         sentences = sentenceList;
         simMatrix = new double[sentences.length()][sentences.length()];
@@ -39,6 +44,12 @@ public class SimilarityMatrix {
         }
     }
 
+    /**
+     * constructor
+     *
+     * @param sentenceList: the list of sentences to compare
+     * @param generateMatrix: boolean that determines whether or not to actually generate the matrix
+     */
     public SimilarityMatrix(StringDict sentenceList, boolean generateMatrix) {
         sentences = sentenceList;
         
@@ -55,6 +66,10 @@ public class SimilarityMatrix {
         }
     }
     
+    /**
+     * @param threshold: a double that determines where to cut off the strings selected
+     * @return a list of sentences above the similarity threshold
+     */
     public ArrayList<String> similarSentences(double threshold) {
         ArrayList<String> output = new ArrayList<String>();
         
@@ -62,20 +77,25 @@ public class SimilarityMatrix {
             for (int j = 0; j < sentences.length(); j++) {
                 if(i != j) {
                     if (cosineSimilarity(sentences.get(i), sentences.get(j)) >= threshold && cosineSimilarity(sentences.get(i), sentences.get(j)) < 0.9999999999999998) {
-                        output.add(sentences.get(i));
-                        output.add(sentences.get(j));
-                        System.out.println("sentences[" + i + "]: " + sentences.get(i));
-                        System.out.println("sentences[" + j + "]: " + sentences.get(j));
-                        System.out.println("Cosine similarity: " + cosineSimilarity(sentences.get(i), sentences.get(j)));
+                        output.add(sentences.getBase(i));
+                        output.add(sentences.getBase(j));
+                        //System.out.println("sentences[" + i + "]: " + sentences.getBase(i));
+                        //System.out.println("sentences[" + j + "]: " + sentences.getBase(j));
+                        //System.out.println("Cosine similarity: " + cosineSimilarity(sentences.get(i), sentences.get(j)));
                     }
                 }
             }
         }
-        
         return output;
     }
-
-    //Calculate cosine similarity. There's rounding errors or something?
+    
+    /**
+     * calculates cosine similarity of two strings
+     *
+     * @param a: the first string
+     * @param b: the second string
+     * @return a double representing the cosine similarity
+     */
     public double cosineSimilarity(String a, String b) {
         TreeSet<String> tempSet = new TreeSet<>();
         StringTokenizer st = new StringTokenizer(a + " " + b, " ");
@@ -102,7 +122,13 @@ public class SimilarityMatrix {
         return cosineSim;
     }
 
-    //determine a vector based on the frequency of each word in a sentence
+    /**
+     * determine a vector based on the frequency of each word in a sentence
+     * 
+     * @param ts: a tree set containing a list of words to count
+     * @param sentence: a string array of words
+     * @return a normalized term frequency vector
+     */
     public double[] calculateVector(TreeSet<String> ts, String[] sentence) {
         double[] vect = new double[ts.size()];
 
@@ -126,7 +152,13 @@ public class SimilarityMatrix {
         return vect;
     }
 
-    //Takes the length of the smaller of the two vectors
+    /**
+     * Takes the length of the smaller of the two vectors
+     *
+     * @param A: an vector of doubles
+     * @param B: another vector of doubles
+     * @return the dot product of two double vectors
+     */
     public double dotProduct(double[] A, double[] B) {
         int minLength = Math.min(A.length, B.length);
         double DP = 0.0;
@@ -138,7 +170,10 @@ public class SimilarityMatrix {
         return DP;
     }
 
-    //calculate the magnitude of a vector
+    /**
+     * @param vector: a double vector
+     * @return the magnitude of the vector as a double
+     */
     public double magnitude(double[] vector) {
         double result = 0.0;
 
@@ -151,7 +186,9 @@ public class SimilarityMatrix {
         return result;
     }
 
-    //return a string of the matrix
+    /**
+     * @return the similarity matrix as a string (note: this takes several minutes with large files)
+     */
     @Override
     public String toString() {
         String out = "";
