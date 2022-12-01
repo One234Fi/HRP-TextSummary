@@ -1,1 +1,1 @@
-list of stop words sourced from: https://www.ranks.nl/stopwords
+list of stop words partially sourced from: https://www.ranks.nl/stopwords

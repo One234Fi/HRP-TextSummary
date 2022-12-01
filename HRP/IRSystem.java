@@ -7,36 +7,55 @@ import java.util.StringTokenizer;
 import java.util.ArrayList;
 
 /**
- *
+ * A class that handles most of the file stuff and text cleaning for this program,
+ * kinda the "main" class that calls all the other functions if you think of the other classes as "methods"
+ * 
  * @author ethan
  */
 public class IRSystem {
 
-    //The files from the directory
-    //private File[] collection;
-    private File inputFile;
-    //The strings pulled from each file
-    private String convertedFile;
+    //the pdf file to be summarized
+    private final File inputFile;
+    //The strings pulled from the file
+    private final String convertedFile;
     //Custom dictionary to store sentences in both modified and unmodified form
-    private StringDict sentences;
-
-    private ArrayList<String> stopWords;
+    private final StringDict sentences;
+    //list of stop words to use 
+    private final ArrayList<String> stopWords;
+    //similarity threshold for sentence comparision
+    private final double threshold;
 
     /**
+     * Constructor
      *
-     * @param filePath
+     * @param filePath: string path to a file
      */
     public IRSystem(String filePath) {
         inputFile = new File(filePath);
         convertedFile = convertFile();
         sentences = new StringDict();
         stopWords = parseStopWords();
+        threshold = 0.6;
+    }
+    
+    /**
+     * Constructor
+     *
+     * @param filePath: string path to a file
+     * @param threshold: double representing the similarity threshold
+     */
+    public IRSystem(String filePath, double threshold) {
+        inputFile = new File(filePath);
+        convertedFile = convertFile();
+        sentences = new StringDict();
+        stopWords = parseStopWords();
+        this.threshold = threshold;
     }
 
     /**
      * Turn the pdf files into strings
      *
-     * @return
+     * @return a string representation of the contents of the input pdf file
      */
     public String convertFile() {
         String convertedText = "";
@@ -51,17 +70,19 @@ public class IRSystem {
     }
 
     /**
-     *
+     * starts the program and calls all the methods needed to make this thing work
      */
     public void start() {
         int i = 0;
         String sentence = "";
         try {
-            //Split into sentences: TODO, figure out how to ignore abbreviations and stuff maybe
+            //Split into sentences
             StringTokenizer st = new StringTokenizer(convertedFile, ".");
 
+            //remove whitespace, then add sentence to the stringDict, then also add the cleaned sentence
             while (st.hasMoreTokens()) {
                 sentence = st.nextToken();
+                sentence = removeWhitespace(sentence);
                 String cleanedSentence = cleanSentence(sentence);
                 if (!cleanedSentence.isBlank()) {
                     sentences.put(i, sentence);
@@ -70,38 +91,64 @@ public class IRSystem {
                     i++;
                 }
             }
-
         } catch (Exception e) {
             System.out.println("Error in start: " + e.toString());
             System.out.println("Error at: " + i + " " + sentence);
         }
         
+        
         System.out.println("Removing stop words...");
         removeStopWords();
-        System.out.println("Building similarity matrix...");
+        System.out.println("Generating summary...\n\n\n");
+        
         SimilarityMatrix simMat = new SimilarityMatrix(sentences, false);
-        //System.out.println(simMat.toString());
-        ArrayList<String> simPairs = simMat.similarSentences(0.8);
+        ArrayList<String> simPairs = simMat.similarSentences(threshold);
+        
+        
+        ArrayList<String> output = new ArrayList<>();
+        for (String s : simPairs) {
+            if (!output.contains(s)) {
+                output.add(s);
+            }
+        }
+        
+        for (String s : output) {
+            System.out.println(s);
+        }
     }
 
+    /**
+     * @param sentence: String
+     * @return a string with the white space and newline characters removed
+     */
+    private String removeWhitespace(String sentence) {
+        String temp = sentence.replaceAll("\n|[^ -~]", "").trim();
+        return temp;
+    }
+    
+    /**
+     * @param sentence: String
+     * @return a string with punctuation, numbers, and invalid characters removed
+     */
     private String cleanSentence(String sentence) {
         String temp = sentence.toLowerCase();
-
-        temp = temp.replaceAll("\n", "");
-        temp = temp.replaceAll("\\p{Punct}", "");
-        temp = temp.replaceAll("\\P{Print}", "");
-        temp = temp.replaceAll("[0-9]" , "");
-
-        //System.out.println(temp);
+        temp = temp.replaceAll("\\p{Punct}|\\P{Print}|[0-9]", "");
         return temp;
     }
 
-    //This is bad pls find better before finishing
+    /**
+     * Iterates through each sentences and removes the stop words from them
+     * 
+     * This is extremely slow because it has to iterate through 
+     * the list of stop words for every sentence
+     * 
+     * So the time complexity is something along the lines of O(n^3) plus however long clearUselessData() takes
+     */
     private void removeStopWords() {
         for (int i = 0; i < sentences.length(); i++) {
             String string = sentences.get(i);
             StringTokenizer st = new StringTokenizer(string, " ");
-            string = "";
+            StringBuilder output = new StringBuilder();
             while (st.hasMoreTokens()) {
                 String temp = st.nextToken();
                 for (int j = 0; j < stopWords.size(); j++) {
@@ -110,10 +157,10 @@ public class IRSystem {
                     }
                 }
                 if (!temp.isBlank()) {
-                    string += temp + " ";
+                    output.append(temp).append(" ");
                 }
             }
-            sentences.modify(i, string);
+            sentences.modify(i, output.toString());
         }
         sentences.clearUselessData();
     }
@@ -130,11 +177,16 @@ public class IRSystem {
         }
     }
 
+    /**
+     * gets all of the stop words from the text file
+     * 
+     * @return a list of stop words from stopWords.txt
+     */
     private ArrayList parseStopWords() {
         ArrayList<String> temp = new ArrayList();
 
         try {
-            Scanner sc = new Scanner(new File("C:/Users/ethan/Documents/NetBeansProjects/PDFBoxTake2/src/HRP/stopWords.txt"));
+            Scanner sc = new Scanner(new File("src/HRP/stopWords.txt"));
             while (sc.hasNext()) {
                 temp.add(sc.next());
             }

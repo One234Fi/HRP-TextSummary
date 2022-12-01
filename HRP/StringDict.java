@@ -1,34 +1,30 @@
-/*
-A custom map to store an unmodified and modified string at the same key
-String[0] will be immutable, and String[1] will be mutable
- */
 package HRP;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * A custom map to store two versions of a string at the same index.
- * The first is immutable and the second is mutable. This will allow
+ * The first is [0] immutable and the second [1] is mutable. This will allow
  * a string to be modified while still having a reference to its original state.
  * 
  * @author ethan
  */
 public class StringDict {
-
     //backbone datastructure
-    private ArrayList<String[]> list;
+    private final ArrayList<String[]> list;
 
     /**
-     * Constructor instantiates map as a LinkedHashMap
+     * Constructor
      */
     public StringDict() {
-        list = new ArrayList<String[]>();
+        list = new ArrayList<>();
     }
 
+    /**
+     * getter
+     * 
+     * @return the size of the backbone list
+     */
     public int length() {
         return list.size();
     }
@@ -50,6 +46,12 @@ public class StringDict {
         return value;
     }
     
+    /**
+     * adds the value to the list
+     *
+     * @param value: string
+     * @return value
+     */
     public String put(String value) {
         String[] vals = {value, value};
         list.add(vals);
@@ -95,10 +97,18 @@ public class StringDict {
         return list.get(key)[1];
     }
     
+    /**
+     * removes the value(s) at key in list
+     *
+     * @param key: int index
+     */
     public void remove(int key) {
         list.remove(key);
     }
     
+    /**
+     * clears out all of the short trash strings
+     */
     public void clearUselessData() {
         list.removeIf((String[] e) -> {
             return e[1].length() <= 12;
@@ -106,25 +116,14 @@ public class StringDict {
     }
     
     /**
-     * Provides access to the map's key set
-     * 
-     * @return          The map's key set.
+     * @return an array list of the mutable values
      */
-    /*public Set<Integer> keySet() {
-        return list.keySet();
-    }*/
-    
     public ArrayList<String> getValues() {
-        ArrayList<String> output = new ArrayList<String>();
+        ArrayList<String> output = new ArrayList<>();
         for (String[] s : list) {
             output.add((String) s[1]);
         }
         
         return output;
     }
-    
-    /*public String[] toArray() {
-        String[] sentences = getValues().toArray();
-        return sentences;
-    }*/
 }
