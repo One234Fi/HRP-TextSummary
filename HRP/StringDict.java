@@ -1,32 +1,35 @@
-/*
-A custom map to store an unmodified and modified string at the same key
-String[0] will be immutable, and String[1] will be mutable
- */
 package HRP;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import java.util.Set;
 
 /**
  * A custom map to store two versions of a string at the same index.
- * The first is immutable and the second is mutable. This will allow
+ * The first is [0] immutable and the second [1] is mutable. This will allow
  * a string to be modified while still having a reference to its original state.
  * 
  * @author ethan
  */
 public class StringDict {
-
-    private Map<Integer, String[]> map;
+    //backbone datastructure
+    private final ArrayList<String[]> list;
 
     /**
-     * Constructor instantiates map as a LinkedHashMap
+     * Constructor
      */
     public StringDict() {
-        map = new LinkedHashMap<>();
+        list = new ArrayList<>();
     }
 
+    /**
+     * getter
+     * 
+     * @return the size of the backbone list
+     */
+    public int length() {
+        return list.size();
+    }
+    
+    
     /**
      * Creates an array with two instantiations of value. 
      * The string at 0 will be treated as immutable.
@@ -38,7 +41,20 @@ public class StringDict {
      */
     public String put(int key, String value) {
         String[] vals = {value, value};
-        map.put(key, vals);
+        list.add(key, vals);
+
+        return value;
+    }
+    
+    /**
+     * adds the value to the list
+     *
+     * @param value: string
+     * @return value
+     */
+    public String put(String value) {
+        String[] vals = {value, value};
+        list.add(vals);
 
         return value;
     }
@@ -51,11 +67,11 @@ public class StringDict {
      * @return          The value parameter
      */
     public String modify(int key, String value) {
-        if (map.get(key) == null) {
+        if (list.get(key) == null) {
             put(key, value);
         } else {
-            String[] temp = {map.get(key)[0], value};
-            map.put(key, temp);
+            String[] temp = {list.get(key)[0], value};
+            list.set(key, temp);
         }
 
         return value;
@@ -68,7 +84,7 @@ public class StringDict {
      * @return          The immutable string at key
      */
     public String getBase(int key) {
-        return map.get(key)[0];
+        return list.get(key)[0];
     }
     
     /**
@@ -78,39 +94,36 @@ public class StringDict {
      * @return          The mutable string at key
      */
     public String get(int key) {
-        return map.get(key)[1];
+        return list.get(key)[1];
     }
     
+    /**
+     * removes the value(s) at key in list
+     *
+     * @param key: int index
+     */
     public void remove(int key) {
-        map.remove(key);
+        list.remove(key);
     }
     
+    /**
+     * clears out all of the short trash strings
+     */
     public void clearUselessData() {
-        map.entrySet().removeIf((Map.Entry<Integer, String[]> e) -> {
-            return e.getValue()[1].length() <= 12;
+        list.removeIf((String[] e) -> {
+            return e[1].length() <= 12;
         });
     }
     
     /**
-     * Provides access to the map's key set
-     * 
-     * @return          The map's key set.
+     * @return an array list of the mutable values
      */
-    public Set<Integer> keySet() {
-        return map.keySet();
-    }
-    
     public ArrayList<String> getValues() {
-        ArrayList<String> output = new ArrayList<String>();
-        for (int i : map.keySet()) {
-            output.add((String) map.get(i)[1]);
+        ArrayList<String> output = new ArrayList<>();
+        for (String[] s : list) {
+            output.add((String) s[1]);
         }
         
         return output;
     }
-    
-    /*public String[] toArray() {
-        String[] sentences = getValues().toArray();
-        return sentences;
-    }*/
 }

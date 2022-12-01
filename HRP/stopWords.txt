@@ -172,3 +172,6 @@ your
 yours
 yourself
 yourselves
+ieee
+arxiv
+acm
