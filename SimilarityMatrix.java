@@ -77,9 +77,15 @@ public class SimilarityMatrix {
             for (int j = 0; j < sentences.length(); j++) {
                 if(i != j) {
                     //sentences.get(j)) < 0.9999999999999998
-                    if (cosineSimilarity(sentences.get(i), sentences.get(j)) >= threshold && cosineSimilarity(sentences.get(i), sentences.get(j)) < 0.9) {
-                        output.add(sentences.getBase(i));
-                        output.add(sentences.getBase(j));
+                    if (cosineSimilarity(sentences.get(i), sentences.get(j)) >= threshold && cosineSimilarity(sentences.get(i), sentences.get(j)) < 0.75) {
+                        
+                        if (!output.contains(sentences.getBase(i))) {
+                            output.add(sentences.getBase(i));
+                        } 
+                        if (!output.contains(sentences.getBase(j))) {
+                            output.add(sentences.getBase(j));
+                        }     
+                        
                         //System.out.println("sentences[" + i + "]: " + sentences.getBase(i));
                         //System.out.println("sentences[" + j + "]: " + sentences.getBase(j));
                         //System.out.println("Cosine similarity: " + cosineSimilarity(sentences.get(i), sentences.get(j)));
