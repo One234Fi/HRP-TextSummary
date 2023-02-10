@@ -116,11 +116,11 @@ public class IRSystem {
         }
 
         //System.out.println("Removing stop words...");
-        List<String> contentWords = removeStopWords();
+        //List<String> contentWords = removeStopWords();
         System.out.println("Generating summary...\n\n\n");
 
         SimilarityMatrix simMat = new SimilarityMatrix(sentences, false);
-        ArrayList<String> simPairs = simMat.similarSentences(0.6);
+        ArrayList<String> simPairs = simMat.similarSentences(0.7);
 
         ArrayList<String> output = new ArrayList<>();
         for (String s : simPairs) {
@@ -137,8 +137,38 @@ public class IRSystem {
         
         String[] keywords = getKeywords();
         //System.out.println(Arrays.toString(keywords));
+        String summary = generateSummary(simPairs, keywords);
+        System.out.println(summary);
     }
 
+    /**
+     * 
+     * @param strings
+     * @param keywords
+     * @return 
+     */
+    String generateSummary(ArrayList<String> strings, String[] keywords) {
+        StringBuilder output = new StringBuilder();
+        int [] weights = new int[strings.size()];
+        for (int i = 0; i < strings.size(); i++) {
+            for (String s : keywords) {
+                if (strings.get(i).contains(s)) {
+                    weights[i] += 1;
+                }
+            }
+        }
+        
+        for (int i = 0; i < strings.size(); i++) {
+            if (weights[i] > 0) {
+                output.append(strings.get(i));
+                output.append("\n");
+            }
+        }
+        
+        return output.toString();
+    }
+    
+    
     /**
      * @param sentence: String
      * @return a string with the white space and newline characters removed
@@ -247,40 +277,40 @@ public class IRSystem {
         //System.out.println("determining rankings");
         //for each word, calculate its score as the number of its co-ocuurences divided by its occurences 
         //aka (row sum divided by entry)
-        double [] ranks = new double[content.size()];
-        for (int i = 0; i < ranks.length; i++) {
+        double [] keywordRanks = new double[content.size()];
+        for (int i = 0; i < keywordRanks.length; i++) {
             double sum = 0.0;
             // I can probably replace matrix[i].len with matrix.len but I don't need more edge cases to deal with rn
             for (int j = 0; j < matrix[i].length; j++) {
                 sum += matrix[i][j];
             }
             
-            if (matrix[0][i] != 0) {
-                ranks[i] = sum / matrix[0][i];
-            } 
-            
+            if (matrix[i][i] != 0) {
+                keywordRanks[i] = sum / matrix[i][i];
+            }
         }
         
-        //
-        double[] scores = new double[candidates.size()];
-        for (int i = 0; i < scores.length; i++) {
+        //this needs to be finished
+        //make it so that the best candidate phrases are selected instead of individual keywords
+        double[] phraseScores = new double[candidates.size()];
+        for (int i = 0; i < phraseScores.length; i++) {
             String [] words = candidates.get(i).split(" ");
             double sum = 0.0;
             for (String s : words) {
                 //ranks.get(content.indexOf(s)
                 if (content.indexOf(s) != -1) {
-                    sum += ranks[content.indexOf(s)];
+                    sum += keywordRanks[content.indexOf(s)];
                 }
                 
             }
-            scores[i] = sum;
+            phraseScores[i] = sum;
         }
         
         
-        //testing that this works because I don't trust my spaghetti code
-        for (int i = 0; i < candidates.size(); i++) {
-            System.out.println(candidates.get(i) + " " + scores[i]);
-        }
+//        //testing that this works because I don't trust my spaghetti code
+//        for (int i = 0; i < candidates.size(); i++) {
+//            System.out.println(candidates.get(i) + " " + scores[i]);
+//        }
         
         
         //System.out.println("selecting best keywords");
@@ -294,13 +324,13 @@ public class IRSystem {
             //Collections.max(DoubleStream.of(ranks).boxed().collect(Collectors.toCollection(ArrayList::new)));
             
             //set output i to the string value of the max of ranks, then set the max of ranks to 0, repeat until output is full
-            t = getMaxIndex(ranks);
-            output[i] =  content.get(getMaxIndex(ranks));
-            ranks[t] = 0.0;
+            t = getMaxIndex(keywordRanks);
+            output[i] =  content.get(getMaxIndex(keywordRanks));
+            keywordRanks[t] = 0.0;
         }
         
 
-        return null;
+        return output;
     }
 
     //take text and split on stop words
