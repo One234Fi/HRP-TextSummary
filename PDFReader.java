@@ -26,7 +26,7 @@ public class PDFReader {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        String filePath = "C:/Users/ethan/OneDrive/Documents/Honors Research Project/ResearchPapers/3486674.pdf";
+        String filePath = "";
         
         Scanner sc = new Scanner(System.in);
         IRSystem IR;
@@ -40,9 +40,9 @@ public class PDFReader {
             
         String path;
         System.out.println("Please enter a pdf file path...");
-        //path = sc.nextLine();
+        path = sc.nextLine();
         
-        path = filePath;
+        //path = filePath;
         
         while (!isValidPath(path)) {
             System.out.println("Couldn't find that file, please enter a valid path...");
