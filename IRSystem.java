@@ -1,21 +1,16 @@
 package nlp;
 
-import static java.awt.SystemColor.text;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Scanner;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 /**
  * A class that handles most of the file stuff and text cleaning for this
@@ -190,37 +185,12 @@ public class IRSystem {
     }
 
     /**
-     * Iterates through each sentences and removes the stop words from them
-     *
-     * This is extremely slow because it has to iterate through the list of stop
-     * words for every sentence
-     *
-     * So the time complexity is something along the lines of O(n^3) plus
-     * however long clearUselessData() takes
+     * Removes the stop words from the sentences
      */
     private List removeStopWords() {
         List<String> wordList = new ArrayList<>(Arrays.asList(convertedFile.replaceAll("[\\s;]+", " ").trim().split(" ")));
         wordList.removeAll(stopWords);
         return wordList;
-
-        /*for (int i = 0; i < sentences.length(); i++) {
-            String string = sentences.get(i);
-            StringTokenizer st = new StringTokenizer(string, " ");
-            StringBuilder output = new StringBuilder();
-            while (st.hasMoreTokens()) {
-                String temp = st.nextToken();
-                for (int j = 0; j < stopWords.size(); j++) {
-                    if (temp.equalsIgnoreCase(stopWords.get(j))){
-                        temp = "";
-                    }
-                }
-                if (!temp.isBlank()) {
-                    output.append(temp).append(" ");
-                }
-            }
-            sentences.modify(i, output.toString());
-        }
-        sentences.clearUselessData();*/
     }
 
     //RAKE keyword extraction **UNFINISHED**
