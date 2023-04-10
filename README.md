@@ -1,5 +1,5 @@
 # HRP-TextSummary
 
-Main branch is an old build that's pretty stable but not particularly useful because it's missing RAKE and some optimizations that the dev branch has.
+Main branch is pretty much functional
 
-Second branch is currently in development, it's mostly functional and has more/better stuff but kinda messy at the moment.
+The code is still pretty slow so I'll probably do some refactoring/rewriting at some point to see if I can get it to run more efficiently
