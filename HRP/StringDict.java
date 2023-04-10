@@ -1,6 +1,8 @@
-package HRP;
+package nlp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A custom map to store two versions of a string at the same index.
@@ -11,13 +13,13 @@ import java.util.ArrayList;
  */
 public class StringDict {
     //backbone datastructure
-    private final ArrayList<String[]> list;
+    private final HashMap<Integer, String[]> map;
 
     /**
      * Constructor
      */
     public StringDict() {
-        list = new ArrayList<>();
+        map = new HashMap<>();
     }
 
     /**
@@ -26,7 +28,7 @@ public class StringDict {
      * @return the size of the backbone list
      */
     public int length() {
-        return list.size();
+        return map.size();
     }
     
     
@@ -41,20 +43,7 @@ public class StringDict {
      */
     public String put(int key, String value) {
         String[] vals = {value, value};
-        list.add(key, vals);
-
-        return value;
-    }
-    
-    /**
-     * adds the value to the list
-     *
-     * @param value: string
-     * @return value
-     */
-    public String put(String value) {
-        String[] vals = {value, value};
-        list.add(vals);
+        map.put(key, vals);
 
         return value;
     }
@@ -67,11 +56,12 @@ public class StringDict {
      * @return          The value parameter
      */
     public String modify(int key, String value) {
-        if (list.get(key) == null) {
+        if (map.get(key) == null) {
             put(key, value);
         } else {
-            String[] temp = {list.get(key)[0], value};
-            list.set(key, temp);
+            String[] old = map.get(key);
+            String[] temp = {map.get(key)[0], value};
+            map.replace(key, old, temp);
         }
 
         return value;
@@ -84,7 +74,7 @@ public class StringDict {
      * @return          The immutable string at key
      */
     public String getBase(int key) {
-        return list.get(key)[0];
+        return map.get(key)[0];
     }
     
     /**
@@ -94,7 +84,7 @@ public class StringDict {
      * @return          The mutable string at key
      */
     public String get(int key) {
-        return list.get(key)[1];
+        return map.get(key)[1];
     }
     
     /**
@@ -103,27 +93,24 @@ public class StringDict {
      * @param key: int index
      */
     public void remove(int key) {
-        list.remove(key);
+        map.remove(key);
     }
     
     /**
      * clears out all of the short trash strings
      */
     public void clearUselessData() {
-        list.removeIf((String[] e) -> {
-            return e[1].length() <= 12;
-        });
+        for(Map.Entry<Integer, String[]> e : map.entrySet()) {
+            if (e.getValue()[1].length() >= 12) {
+                map.remove(e.getKey());
+            }
+        }
     }
     
     /**
      * @return an array list of the mutable values
      */
     public ArrayList<String> getValues() {
-        ArrayList<String> output = new ArrayList<>();
-        for (String[] s : list) {
-            output.add((String) s[1]);
-        }
-        
-        return output;
+        return (ArrayList)map.values();
     }
 }

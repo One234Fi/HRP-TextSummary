@@ -1,15 +1,22 @@
-package HRP;
+package nlp;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
- * A class that handles most of the file stuff and text cleaning for this program,
- * kinda the "main" class that calls all the other functions if you think of the other classes as "methods"
- * 
+ * A class that handles most of the file stuff and text cleaning for this
+ * program, kinda the "main" class that calls all the other functions if you
+ * think of the other classes as "methods"
+ *
  * @author ethan
  */
 public class IRSystem {
@@ -17,27 +24,29 @@ public class IRSystem {
     //the pdf file to be summarized
     private final File inputFile;
     //The strings pulled from the file
-    private final String convertedFile;
+    private String convertedFile;
     //Custom dictionary to store sentences in both modified and unmodified form
     private final StringDict sentences;
     //list of stop words to use 
-    private final ArrayList<String> stopWords;
+    private final Set<String> stopWords;
     //similarity threshold for sentence comparision
     private final double threshold;
+    //the list of keywords extracted from the text via TF-IDF
+    //private final ArrayList<String> keywords;
 
     /**
      * Constructor
      *
      * @param filePath: string path to a file
      */
-    public IRSystem(String filePath) {
-        inputFile = new File(filePath);
-        convertedFile = convertFile();
+    public IRSystem(String text) {
+        inputFile = null;
+        convertedFile = text;
         sentences = new StringDict();
         stopWords = parseStopWords();
         threshold = 0.6;
     }
-    
+
     /**
      * Constructor
      *
@@ -70,9 +79,13 @@ public class IRSystem {
     }
 
     /**
-     * starts the program and calls all the methods needed to make this thing work
+     * starts the program and calls all the methods needed to make this thing
+     * work
      */
     public void start() {
+        //System.out.println(convertedFile);
+        convertedFile = convertedFile.substring(0, convertedFile.lastIndexOf("REFERENCE"));
+
         int i = 0;
         String sentence = "";
         try {
@@ -82,6 +95,7 @@ public class IRSystem {
             //remove whitespace, then add sentence to the stringDict, then also add the cleaned sentence
             while (st.hasMoreTokens()) {
                 sentence = st.nextToken();
+                //System.out.println(sentence);
                 sentence = removeWhitespace(sentence);
                 String cleanedSentence = cleanSentence(sentence);
                 if (!cleanedSentence.isBlank()) {
@@ -95,28 +109,61 @@ public class IRSystem {
             System.out.println("Error in start: " + e.toString());
             System.out.println("Error at: " + i + " " + sentence);
         }
-        
-        
-        System.out.println("Removing stop words...");
-        removeStopWords();
+
+        //System.out.println("Removing stop words...");
+        //List<String> contentWords = removeStopWords();
         System.out.println("Generating summary...\n\n\n");
-        
+
         SimilarityMatrix simMat = new SimilarityMatrix(sentences, false);
-        ArrayList<String> simPairs = simMat.similarSentences(threshold);
-        
-        
+        ArrayList<String> simPairs = simMat.similarSentences(0.7);
+
         ArrayList<String> output = new ArrayList<>();
         for (String s : simPairs) {
             if (!output.contains(s)) {
                 output.add(s);
             }
         }
-        
+        /*
         for (String s : output) {
             System.out.println(s);
         }
+        */
+
+        
+        String[] keywords = getKeywords();
+        //System.out.println(Arrays.toString(keywords));
+        String summary = generateSummary(simPairs, keywords);
+        System.out.println(summary);
     }
 
+    /**
+     * 
+     * @param strings
+     * @param keywords
+     * @return 
+     */
+    String generateSummary(ArrayList<String> strings, String[] keywords) {
+        StringBuilder output = new StringBuilder();
+        int [] weights = new int[strings.size()];
+        for (int i = 0; i < strings.size(); i++) {
+            for (String s : keywords) {
+                if (strings.get(i).contains(s)) {
+                    weights[i] += 1;
+                }
+            }
+        }
+        
+        for (int i = 0; i < strings.size(); i++) {
+            if (weights[i] > 0) {
+                output.append(strings.get(i));
+                output.append("\n");
+            }
+        }
+        
+        return output.toString();
+    }
+    
+    
     /**
      * @param sentence: String
      * @return a string with the white space and newline characters removed
@@ -125,10 +172,11 @@ public class IRSystem {
         String temp = sentence.replaceAll("\n|[^ -~]", "").trim();
         return temp;
     }
-    
+
     /**
      * @param sentence: String
-     * @return a string with punctuation, numbers, and invalid characters removed
+     * @return a string with punctuation, numbers, and invalid characters
+     * removed
      */
     private String cleanSentence(String sentence) {
         String temp = sentence.toLowerCase();
@@ -137,32 +185,149 @@ public class IRSystem {
     }
 
     /**
-     * Iterates through each sentences and removes the stop words from them
-     * 
-     * This is extremely slow because it has to iterate through 
-     * the list of stop words for every sentence
-     * 
-     * So the time complexity is something along the lines of O(n^3) plus however long clearUselessData() takes
+     * Removes the stop words from the sentences
      */
-    private void removeStopWords() {
-        for (int i = 0; i < sentences.length(); i++) {
-            String string = sentences.get(i);
-            StringTokenizer st = new StringTokenizer(string, " ");
-            StringBuilder output = new StringBuilder();
-            while (st.hasMoreTokens()) {
-                String temp = st.nextToken();
-                for (int j = 0; j < stopWords.size(); j++) {
-                    if (temp.equalsIgnoreCase(stopWords.get(j))){
-                        temp = "";
+    private List removeStopWords() {
+        List<String> wordList = new ArrayList<>(Arrays.asList(convertedFile.replaceAll("[\\s;]+", " ").trim().split(" ")));
+        wordList.removeAll(stopWords);
+        return wordList;
+    }
+
+    //RAKE keyword extraction **UNFINISHED**
+    /**
+     * count how many times each content word appears across the candidate
+     * phrases
+     *
+     * @return
+     */
+    public String[] getKeywords() {
+        //String text = convertedFile.toLowerCase();
+
+        //System.out.println("finding keywords");
+        String[] all_words = convertedFile.split("\\W+");
+        ArrayList<String> content = new ArrayList<>();
+        for (String s : all_words) {
+            String t = removeWhitespace(cleanSentence(s));
+            if (!content.contains(t)) {
+                content.add(t);
+            }
+        }
+
+        //System.out.println("removing stopwords from content");
+        //remove stop words from content word list
+        content.removeAll(stopWords);
+
+        //TODO candidate expressions
+        //take text, split on stop words and 
+        List<String> candidates = getCandidates(all_words);
+
+        //System.out.println("computing RAKE matrix");
+        int[][] matrix = new int[content.size()][content.size()];
+
+        //TODO: this is reaaaaally slow, find a way to do it better/faster (takes like two minutes with the current sampleset)
+        //3 loops kinda sucks but idk how to do this with better time complexity yet and I don't feel like spending a week researching it cause I'm not getting paid for this
+        
+        //need: count, co-occurence count
+        //problem: lots of unused space
+        //idea: compress 2d array into 1d array that counts co-occurences
+        //make new array of same size to keep track of counts
+        
+        for (int i = 0; i < content.size(); i++) {
+            //System.out.println("loop " + i);
+            for (int j = 0; j < content.size(); j++) {
+                for (String phrase : candidates) {
+                    if (phrase.contains(content.get(i)) && phrase.contains(content.get(j))) {
+                        //the mat is always symmetrical afaik so I could probably find a way to shortcut the calc but imma worry about that later
+                        matrix[i][j]+=1;
                     }
                 }
-                if (!temp.isBlank()) {
-                    output.append(temp).append(" ");
+            }
+        }
+        
+        //System.out.println("determining rankings");
+        //for each word, calculate its score as the number of its co-ocuurences divided by its occurences 
+        //aka (row sum divided by entry)
+        double [] keywordRanks = new double[content.size()];
+        for (int i = 0; i < keywordRanks.length; i++) {
+            double sum = 0.0;
+            // I can probably replace matrix[i].len with matrix.len but I don't need more edge cases to deal with rn
+            for (int j = 0; j < matrix[i].length; j++) {
+                sum += matrix[i][j];
+            }
+            
+            if (matrix[i][i] != 0) {
+                keywordRanks[i] = sum / matrix[i][i];
+            }
+        }
+        
+        //this needs to be finished
+        //make it so that the best candidate phrases are selected instead of individual keywords
+        double[] phraseScores = new double[candidates.size()];
+        for (int i = 0; i < phraseScores.length; i++) {
+            String [] words = candidates.get(i).split(" ");
+            double sum = 0.0;
+            for (String s : words) {
+                //ranks.get(content.indexOf(s)
+                if (content.indexOf(s) != -1) {
+                    sum += keywordRanks[content.indexOf(s)];
+                }
+                
+            }
+            phraseScores[i] = sum;
+        }
+        
+        
+//        //testing that this works because I don't trust my spaghetti code
+//        for (int i = 0; i < candidates.size(); i++) {
+//            System.out.println(candidates.get(i) + " " + scores[i]);
+//        }
+        
+        
+        //System.out.println("selecting best keywords");
+        //now take the top 1/3 ranking words
+        int num = content.size() / 5;
+        String[] output = new String[num];
+        //Double[] ranksCopy = (Double[]) DoubleStream.of(ranks).boxed().collect(Collectors.toCollection(ArrayList::new)).toArray();
+        
+        int t;
+        for (int i = 0; i < num; i++) {
+            //Collections.max(DoubleStream.of(ranks).boxed().collect(Collectors.toCollection(ArrayList::new)));
+            
+            //set output i to the string value of the max of ranks, then set the max of ranks to 0, repeat until output is full
+            t = getMaxIndex(keywordRanks);
+            output[i] =  content.get(getMaxIndex(keywordRanks));
+            keywordRanks[t] = 0.0;
+        }
+        
+
+        return output;
+    }
+
+    //take text and split on stop words
+    List<String> getCandidates(String[] words) {
+        //the list of candidates
+        List<String> candidates = new ArrayList<>();
+
+        //the string that will become a candidate
+        StringBuilder candidate = new StringBuilder();
+
+        //split the list of words off of the list of stop words, I think this is O(n)ish so not the worst
+        for (String s : words) {
+
+            //if the word isn't a stop word, add it to the current candidate
+            if (!stopWords.contains(s)) {
+                candidate.append(s).append(" ");
+            } //if the word is a stop word, add the current candidate to the list, then clear the candidate
+            else {
+                if (!candidate.toString().trim().isBlank()) {
+                    candidates.add(candidate.toString().trim());
+                    //System.out.println(candidate.toString() + ".");
+                    candidate.setLength(0);
                 }
             }
-            sentences.modify(i, output.toString());
         }
-        sentences.clearUselessData();
+
+        return candidates;
     }
 
     /**
@@ -179,22 +344,35 @@ public class IRSystem {
 
     /**
      * gets all of the stop words from the text file
-     * 
+     *
      * @return a list of stop words from stopWords.txt
      */
-    private ArrayList parseStopWords() {
-        ArrayList<String> temp = new ArrayList();
+    private Set parseStopWords() {
+        Set<String> stopWords = new TreeSet<>();
 
         try {
-            Scanner sc = new Scanner(new File("src/HRP/stopWords.txt"));
-            while (sc.hasNext()) {
-                temp.add(sc.next());
-            }
+            stopWords.addAll(Files.readAllLines(Paths.get("src/nlp/stopWords.txt")));
+
         } catch (Exception e) {
             System.out.println("Caught error in parseStopWords: " + e.toString());
         }
 
-        return temp;
+        return stopWords;
+    }
+    
+    //return the index of the max of an array
+    public int getMaxIndex(double[] arr) {
+        double max = arr[0];
+        int index = 0;
+        
+        for (int i = 1; i < arr.length; i++) {
+            if (arr[i] > max) {
+                max = arr[i];
+                index = i;
+            }
+        }
+        
+        return index;
     }
 
 }
