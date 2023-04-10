@@ -1,4 +1,4 @@
-package HRP;
+package nlp;
 
 import java.util.Arrays;
 import java.util.TreeSet;
@@ -76,9 +76,16 @@ public class SimilarityMatrix {
         for (int i = 0; i < sentences.length(); i++) {
             for (int j = 0; j < sentences.length(); j++) {
                 if(i != j) {
-                    if (cosineSimilarity(sentences.get(i), sentences.get(j)) >= threshold && cosineSimilarity(sentences.get(i), sentences.get(j)) < 0.9999999999999998) {
-                        output.add(sentences.getBase(i));
-                        output.add(sentences.getBase(j));
+                    //sentences.get(j)) < 0.9999999999999998
+                    if (cosineSimilarity(sentences.get(i), sentences.get(j)) >= threshold && cosineSimilarity(sentences.get(i), sentences.get(j)) < 0.75) {
+                        
+                        if (!output.contains(sentences.getBase(i))) {
+                            output.add(sentences.getBase(i));
+                        } 
+                        if (!output.contains(sentences.getBase(j))) {
+                            output.add(sentences.getBase(j));
+                        }     
+                        
                         //System.out.println("sentences[" + i + "]: " + sentences.getBase(i));
                         //System.out.println("sentences[" + j + "]: " + sentences.getBase(j));
                         //System.out.println("Cosine similarity: " + cosineSimilarity(sentences.get(i), sentences.get(j)));
