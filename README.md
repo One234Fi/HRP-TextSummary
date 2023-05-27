@@ -1,5 +1,8 @@
 # HRP-TextSummary
 
-Main branch is pretty much functional
+Archive of a text summary project for school.
 
-The code is still pretty slow so I'll probably do some refactoring/rewriting at some point to see if I can get it to run more efficiently
+It technically works, but it's extremely messy and slow
+so I'm re-organizing it with better planning and structure in a different repo instead.
+
+new repo: https://github.com/One234Fi/TextSummary
